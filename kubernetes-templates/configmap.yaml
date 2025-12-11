@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: globus-config
+  namespace: default
+data:
+  # The gate name the Stratego/Dummy app is waiting for
+  GATE_NAME: "controller.globus/swagger-ready"
+  # The label of the apps to control (Matches your dummy app)
+  TARGET_LABEL: "app=dummy-stratego"
+  # How often to check the swagger endpoint
+  CHECK_INTERVAL: "5s"
+  # Namespace to watch
+  TARGET_NAMESPACE: "default"
+  DEPENDENCY_URL: "http://swagger-api-server.globus.svc.cluster.local:3000/readiness"
