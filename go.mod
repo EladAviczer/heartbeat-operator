@@ -1,4 +1,4 @@
-module health-sentinel
+module readiness-controller
 
 go 1.24.2
 

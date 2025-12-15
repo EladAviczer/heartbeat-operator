@@ -1,11 +1,16 @@
-FROM golang:1.25-alpine AS builder
+# Build Stage
+FROM golang:1.24-alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
-COPY *.go ./
-RUN go build -o sentinel .
+COPY . .
+# Build the binary inside cmd/readiness-controller
+RUN go build -o readiness-controller cmd/readiness-controller/main.go
 
+# Run Stage
 FROM alpine:latest
+# Install tools for 'exec' probes
+RUN apk add --no-cache curl netcat-openbsd bash
 WORKDIR /root/
-COPY --from=builder /app/sentinel .
-CMD ["./sentinel"]
+COPY --from=builder /app/readiness-controller .
+CMD ["./readiness-controller"]

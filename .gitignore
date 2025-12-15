@@ -1,0 +1,57 @@
+# --- Go ---
+# Binaries and compiled object files
+/bin/
+*.exe
+*.test
+*.out
+*.prof
+
+# Local binary if built in root
+readiness-controller
+
+# Vendor directory (remove if you want to commit dependencies)
+vendor/
+
+# --- Helm ---
+# Helm charts usually download dependencies into a 'charts/' subdir
+charts/**/charts/
+# Helm package artifacts
+*.tgz
+*.lock
+# Helm temporary files
+charts/**/tmp/
+
+# --- Docker ---
+.dockerignore
+
+# --- IDEs & Editors ---
+# VS Code
+.vscode/
+*.code-workspace
+
+# IntelliJ / GoLand
+.idea/
+*.iml
+
+# Vim / Emacs
+*~
+*.swp
+*.swo
+
+# --- OS Specific ---
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Logs & Temp ---
+*.log
+tmp/
