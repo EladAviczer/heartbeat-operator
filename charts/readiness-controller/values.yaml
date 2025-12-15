@@ -1,0 +1,49 @@
+# readiness-controller/values.yaml
+
+replicaCount: 1
+
+image:
+  repository: eladavi/readiness-controller
+  pullPolicy: Always
+  tag: "0.0.4"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# --- CUSTOM CONFIGURATION ---
+gates:
+  - name: "google-check"
+    gateName: "controller.rc/google"
+    targetLabel: "app=donnie"
+    namespace: "default"
+    checkType: "http"
+    checkTarget: "https://google.com/zokolo"
+    interval: "10s"
+
+  # Example TCP check
+  # - name: "redis-check"
+  #   gateName: "controller.rc/redis"
+  #   targetLabel: "app=clyde"
+  #   namespace: "default"
+  #   checkType: "tcp"
+  #   checkTarget: "redis-master:6379"
+  #   interval: "5s"
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080

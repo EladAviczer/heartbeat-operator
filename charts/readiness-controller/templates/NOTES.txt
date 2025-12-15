@@ -1,0 +1,10 @@
+1. Get the application URL by running these commands:
+   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "readiness-controller.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+   echo "Visit http://127.0.0.1:8080 to use your application"
+   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:8080
+
+2. Verify the controller is watching your gates:
+   kubectl logs -f $POD_NAME
+
+3. Check the Status UI:
+   Open http://localhost:8080 in your browser.
