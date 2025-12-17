@@ -60,6 +60,9 @@ func HandleMutate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(respBytes); err != nil {
+		log.Printf("Failed to write admission response: %v", err)
+	}
 	w.Write(respBytes)
 }
 
