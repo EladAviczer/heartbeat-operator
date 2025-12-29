@@ -10,6 +10,15 @@ rules:
   - apiGroups: [""]
     resources: ["pods/status"]
     verbs: ["update", "patch"]
+  - apiGroups: ["probes.ready.io"]
+    resources: ["probes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["probes.ready.io"]
+    resources: ["probes/status"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

@@ -6,4 +6,4 @@ metadata:
     {{- include "readiness-controller.labels" . | nindent 4 }}
 data:
   gates.json: |
-    {{- .Values.gates | toJson | nindent 4 }}
+    {{- .Values.probes | toJson | nindent 4 }}

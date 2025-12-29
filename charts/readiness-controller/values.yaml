@@ -1,11 +1,10 @@
-# readiness-controller/values.yaml
 
 replicaCount: 1
 
 image:
   repository: eladavi/readiness-controller
   pullPolicy: Always
-  tag: "0.0.4"
+  tag: "localbuild_0.0.8"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -16,11 +15,9 @@ serviceAccount:
   annotations: {}
   name: ""
 
-# --- CUSTOM CONFIGURATION ---
-gates:
+# --- PROBE CONFIGURATION ---
+probes:
   - name: "google-check"
-    gateName: "controller.rc/google"
-    targetLabel: "app=donnie"
     namespace: "default"
     checkType: "http"
     checkTarget: "https://google.com/zokolo"
@@ -28,8 +25,6 @@ gates:
 
   # Example TCP check
   # - name: "redis-check"
-  #   gateName: "controller.rc/redis"
-  #   targetLabel: "app=clyde"
   #   namespace: "default"
   #   checkType: "tcp"
   #   checkTarget: "redis-master:6379"
