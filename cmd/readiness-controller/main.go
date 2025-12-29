@@ -13,8 +13,12 @@ import (
 	"readiness-controller/internal/prober"
 	"readiness-controller/internal/ui"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/record"
 )
 
 func main() {
@@ -37,6 +41,22 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create k8s client: %v", err)
 	}
+
+	log.Println("Initializing Event Broadcaster...")
+	eventBroadcaster := record.NewBroadcaster()
+
+	eventBroadcaster.StartStructuredLogging(0)
+
+	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{
+		Interface: clientset.CoreV1().Events(""),
+	})
+	defer eventBroadcaster.Shutdown()
+
+	recorder := eventBroadcaster.NewRecorder(
+		scheme.Scheme,
+		corev1.EventSource{Component: "readiness-controller"},
+	)
+	// -------------------------------------------------------
 
 	ui.Start("8080")
 
@@ -65,7 +85,15 @@ func main() {
 				return
 			}
 
-			ctrl := controller.New(clientset, r, p)
+			// -------------------------------------------------------
+			// Initialize CRD Client
+			crdClient, err := controller.NewCrdClient(k8sConfig, r.Namespace)
+			if err != nil {
+				log.Printf("Failed to create CRD client: %v", err)
+				return
+			}
+
+			ctrl := controller.New(clientset, crdClient, r, p, recorder)
 			ctrl.Start(ctx)
 		}()
 	}
