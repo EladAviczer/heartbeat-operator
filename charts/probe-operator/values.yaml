@@ -20,7 +20,7 @@ probes:
     namespace: "default"
     checkType: "http"
     checkTarget: "https://google.com/zokolo"
-    interval: "10s"
+    interval: "60s"
 
   # Example TCP check
   # - name: "redis-check"
@@ -46,6 +46,7 @@ metrics:
   enabled: true
   port: 9090
   serviceMonitor:
-    enabled: false
-    # namespace: monitoring
-    # labels: {}
+    enabled: true
+    namespace: monitoring
+    labels:
+      prometheus: apps

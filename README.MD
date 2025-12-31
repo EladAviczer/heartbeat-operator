@@ -1,70 +1,81 @@
-# Readiness Controller (Probe Architecture)
+# Probe Operator
 
 ![Version](https://img.shields.io/badge/version-0.1.0-blue.svg) ![Kubernetes](https://img.shields.io/badge/kubernetes-1.19+-green.svg)
 [![CI](https://github.com/EladAviczer/readiness-controller/actions/workflows/ci.yaml/badge.svg)](https://github.com/EladAviczer/readiness-controller/actions/workflows/ci.yaml)
 
-**Readiness Controller** is a Kubernetes controller that implements **Centralized Dependency Probing**.
+> **Effortless Probing for Kubernetes.**
 
-It continuously checks the health of shared resources (Databases, External APIs) and publishes their status to native **Kubernetes Custom Resources (`Probe`)**.
+**Probe Operator** is the easiest way to configure and run health checks, reachability tests, and data validation probes in your Kubernetes cluster.
 
-## The Problem
-When 50 microservices all depend on a single database, standard Kubernetes Probes create inefficiencies:
+Stop writing custom scripts, sidecars, or cronjobs just to check if "Site A" is up or "Service B" is reachable. Define your probes declaratively and let the operator handle the rest.
 
-1.  **The "Thundering Herd":** 50 replicas checking the database every 5 seconds = **600 requests per minute** just for health checks.
-2.  **Opacity:** If a dependency fails, it's hard to distinguish app errors from dependency errors.
+## 🚀 Why Use It?
 
-## The Solution
-**Readiness Controller** acts as a **Singleton Sentinel**.
+*   **Simple Configuration**: Define your checks in standard YAML. No code required.
+*   **Versatile**: Check internal services, external APIs, databases, or run custom scripts.
+*   **Unified Visibility**: Get a consistent view of all your probes via Kubernetes CRDs, Prometheus Metrics, and Grafana.
+*   **Zero Overhead**: A single operator manages hundreds of probes efficiently.
 
-1.  **Check Once:** The controller checks the dependency **one time**.
-2.  **Publish Status:** It updates a `Probe` resource in Kubernetes with the result.
-3.  **Consume Anywhere:** Your applications, dashboards, or other controllers can simply watch these resources to know the health of the system.
+## ✨ Features
 
----
+*   **HTTP/HTTPS**: Check status codes, response times.
+*   **TCP**: Check port connectivity (Databases, Queues).
+*   **Prometheus**: Native metrics (`probe_success`, `probe_duration_seconds`) on port `9090`.
+*   **Grafana**: Includes a ready-to-use dashboard.
 
-## Features
-*   **Probe CRD:** Native accessible status via `kubectl get probes`.
-*   **Pluggable Probers:**
-    *   `http`: Check REST APIs or Webhooks.
-    *   `tcp`: Check Databases, Queues, or raw sockets.
-    *   `exec`: Run custom scripts (curl, grep, jq).
-*   **Status Dashboard:** Built-in web UI (port 8080) to visualize all probes.
+## 🛠️ Quick Start
 
----
-
-## Quick Start
-
-### 1. Prerequisites
-*   Kubernetes 1.19+
-*   Helm 3+
-
-### 2. Install
-Clone the repository and install using Helm:
-
+### 1. Install
 ```bash
-git clone https://github.com/EladAviczer/readiness-controller.git
-cd readiness-controller
-
-# Install the chart (includes CRD)
-helm install rc ./charts/readiness-controller
+helm upgrade --install probe-operator ./charts/probe-operator \
+  --namespace default \
+  --set metrics.enabled=true
 ```
 
-### 3. Usage
-Once installed and configured, the controller will automatically create `Probe` resources for your defined rules.
+### 2. Configure Your Probes
+Simply edit `values.yaml` to define what you want to check:
 
-**Check Status:**
+```yaml
+probes:
+  # Check an external website
+  - name: "check-google"
+    checkType: "http"
+    checkTarget: "https://google.com"
+    interval: "30s"
+
+  # Check an internal database port
+  - name: "check-postgres"
+    checkType: "tcp"
+    checkTarget: "postgres-service:5432"
+    interval: "10s"
+    
+  # Check a service in another namespace
+  - name: "check-payment-api"
+    checkType: "http"
+    checkTarget: "http://payment.finance.svc.cluster.local/health"
+    interval: "15s"
+```
+
+### 3. See Results
+**Instant Status via CLI:**
 ```bash
-kubectl get probes
+$ kubectl get probes
+NAME               HEALTHY   MESSAGE        AGE
+check-google       true      200 OK         2m
+check-postgres     true      Connected      2m
+check-payment-api  false     503 Unavailable 2m
 ```
 
-**Output:**
-```
-NAME            HEALTHY   MESSAGE        AGE
-postgres-main   true      Check passed   5m
-redis-cache     false     Check failed   5m
-```
+**Visualize in Grafana:**
+Import the included `dashboards/grafana-dashboard.json` to see Success Rates, Latency, and Status History instantly.
 
-**Get Details:**
-```bash
-kubectl describe probe postgres-main
-```
+## 🧩 How It Works
+1.  You define a **Probe**.
+2.  The **Operator** executes the check (HTTP, TCP, etc.) on the defined interval.
+3.  The results are immediately available in:
+    *   **Kubernetes API** (as `Probe` objects)
+    *   **Prometheus** (as metrics)
+
+**Port Isolation:**
+*   `:8080`: Internal status UI.
+*   `:9090`: Prometheus metrics.

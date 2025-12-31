@@ -22,12 +22,12 @@
           "type": "string"
         },
         "repository": {
-          "default": "eladavi/readiness-controller",
+          "default": "eladavi/probe-operator",
           "title": "repository",
           "type": "string"
         },
         "tag": {
-          "default": "localbuild_0.0.9",
+          "default": "localbuild_0.0.12",
           "title": "tag",
           "type": "string"
         }
@@ -64,13 +64,35 @@
           "additionalProperties": false,
           "properties": {
             "enabled": {
-              "default": false,
+              "default": true,
               "title": "enabled",
               "type": "boolean"
+            },
+            "labels": {
+              "additionalProperties": false,
+              "properties": {
+                "prometheus": {
+                  "default": "apps",
+                  "title": "prometheus",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "prometheus"
+              ],
+              "title": "labels",
+              "type": "object"
+            },
+            "namespace": {
+              "default": "monitoring",
+              "title": "namespace",
+              "type": "string"
             }
           },
           "required": [
-            "enabled"
+            "enabled",
+            "namespace",
+            "labels"
           ],
           "title": "serviceMonitor",
           "type": "object"
@@ -107,7 +129,7 @@
                 "type": "string"
               },
               "interval": {
-                "default": "10s",
+                "default": "60s",
                 "title": "interval",
                 "type": "string"
               },
