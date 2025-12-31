@@ -7,6 +7,7 @@ import (
 
 	"readiness-controller/api/v1alpha1"
 	"readiness-controller/internal/config"
+	"readiness-controller/internal/metrics"
 	"readiness-controller/internal/prober"
 	"readiness-controller/internal/ui"
 
@@ -86,7 +87,18 @@ func (c *ReadinessController) ensureCR(ctx context.Context) error {
 }
 
 func (c *ReadinessController) reconcile(ctx context.Context) {
+	start := time.Now()
 	isHealthy := c.probe.Check()
+	duration := time.Since(start).Seconds()
+
+	metrics.ProbeDuration.WithLabelValues(c.rule.Name, c.rule.CheckTarget, c.rule.CheckType).Observe(duration)
+	metrics.ProbeLastTimestamp.WithLabelValues(c.rule.Name, c.rule.CheckTarget, c.rule.CheckType).Set(float64(time.Now().Unix()))
+
+	if isHealthy {
+		metrics.ProbeSuccess.WithLabelValues(c.rule.Name, c.rule.CheckTarget, c.rule.CheckType).Set(1)
+	} else {
+		metrics.ProbeSuccess.WithLabelValues(c.rule.Name, c.rule.CheckTarget, c.rule.CheckType).Set(0)
+	}
 
 	ui.UpdateState(c.rule.Name, c.rule.CheckTarget, c.rule.CheckType, isHealthy)
 

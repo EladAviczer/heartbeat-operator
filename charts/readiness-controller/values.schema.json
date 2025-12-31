@@ -27,7 +27,7 @@
           "type": "string"
         },
         "tag": {
-          "default": "localbuild_0.0.8",
+          "default": "localbuild_0.0.9",
           "title": "tag",
           "type": "string"
         }
@@ -46,6 +46,43 @@
       },
       "title": "imagePullSecrets",
       "type": "array"
+    },
+    "metrics": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "enabled",
+          "type": "boolean"
+        },
+        "port": {
+          "default": 9090,
+          "title": "port",
+          "type": "integer"
+        },
+        "serviceMonitor": {
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "default": false,
+              "title": "enabled",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "enabled"
+          ],
+          "title": "serviceMonitor",
+          "type": "object"
+        }
+      },
+      "required": [
+        "enabled",
+        "port",
+        "serviceMonitor"
+      ],
+      "title": "metrics",
+      "type": "object"
     },
     "nameOverride": {
       "default": "",
@@ -223,7 +260,8 @@
     "serviceAccount",
     "probes",
     "resources",
-    "service"
+    "service",
+    "metrics"
   ],
   "type": "object"
 }

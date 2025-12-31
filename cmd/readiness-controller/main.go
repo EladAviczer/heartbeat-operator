@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -19,6 +20,8 @@ import (
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -59,6 +62,26 @@ func main() {
 	// -------------------------------------------------------
 
 	ui.Start("8080")
+
+	// Start Metrics Server
+	metricsAddr := os.Getenv("METRICS_ADDR")
+	if metricsAddr == "" {
+		metricsAddr = ":9090"
+	}
+	// Basic check to see if we should enable it, or just always enable it if env var is present?
+	// For now, always enable on 9090 unless configured otherwise.
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		server := &http.Server{
+			Addr:    metricsAddr,
+			Handler: mux,
+		}
+		log.Printf("Starting metrics server on %s", metricsAddr)
+		if err := server.ListenAndServe(); err != nil {
+			log.Printf("Metrics server failed: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

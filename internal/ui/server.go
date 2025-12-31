@@ -105,11 +105,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Start(port string) {
-	http.HandleFunc("/", handler)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", handler)
+	server := &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
+	}
+
 	log.Printf("UI Server started on port %s", port)
 
 	go func() {
-		if err := http.ListenAndServe(":"+port, nil); err != nil {
+		if err := server.ListenAndServe(); err != nil {
 			log.Fatalf("UI Server failed to start: %v", err)
 		}
 	}()

@@ -1,10 +1,9 @@
-
 replicaCount: 1
 
 image:
   repository: eladavi/readiness-controller
   pullPolicy: Always
-  tag: "localbuild_0.0.8"
+  tag: "localbuild_0.0.12"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -42,3 +41,11 @@ service:
   type: ClusterIP
   port: 80
   targetPort: 8080
+
+metrics:
+  enabled: true
+  port: 9090
+  serviceMonitor:
+    enabled: false
+    # namespace: monitoring
+    # labels: {}
