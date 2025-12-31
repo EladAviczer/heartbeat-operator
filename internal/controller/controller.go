@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"readiness-controller/api/v1alpha1"
-	"readiness-controller/internal/config"
-	"readiness-controller/internal/metrics"
-	"readiness-controller/internal/prober"
-	"readiness-controller/internal/ui"
+	"probe-operator/api/v1alpha1"
+	"probe-operator/internal/config"
+	"probe-operator/internal/metrics"
+	"probe-operator/internal/prober"
+	"probe-operator/internal/ui"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

@@ -44,7 +44,7 @@ jobs:
           version: v3.14.0
 
       - name: Lint Chart
-        run: helm lint charts/readiness-controller
+        run: helm lint charts/probe-operator
 
   docker-publish:
     name: Docker Build & Push
@@ -71,7 +71,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: eladavi/readiness-controller
+          images: eladavi/probe-operator
           tags: |
             # Tag: "latest" (Only on main branch)
             type=raw,value=latest,enable={{is_default_branch}}

@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: eladavi/readiness-controller
+  repository: eladavi/probe-operator
   pullPolicy: Always
   tag: "localbuild_0.0.12"
 

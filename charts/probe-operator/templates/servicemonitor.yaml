@@ -2,16 +2,16 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "readiness-controller.fullname" . }}
+  name: {{ include "probe-operator.fullname" . }}
   labels:
-    {{- include "readiness-controller.labels" . | nindent 4 }}
+    {{- include "probe-operator.labels" . | nindent 4 }}
     {{- if .Values.metrics.serviceMonitor.labels }}
     {{- toYaml .Values.metrics.serviceMonitor.labels | nindent 4 }}
     {{- end }}
 spec:
   selector:
     matchLabels:
-      {{- include "readiness-controller.selectorLabels" . | nindent 6 }}
+      {{- include "probe-operator.selectorLabels" . | nindent 6 }}
   endpoints:
     - port: metrics
       path: /metrics

@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 
-	"readiness-controller/api/v1alpha1"
+	"probe-operator/api/v1alpha1"
 
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"

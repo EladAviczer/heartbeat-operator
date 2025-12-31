@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "readiness-controller.name" -}}
+{{- define "probe-operator.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "readiness-controller.fullname" -}}
+{{- define "probe-operator.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "readiness-controller.chart" -}}
+{{- define "probe-operator.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "readiness-controller.labels" -}}
-helm.sh/chart: {{ include "readiness-controller.chart" . }}
-{{ include "readiness-controller.selectorLabels" . }}
+{{- define "probe-operator.labels" -}}
+helm.sh/chart: {{ include "probe-operator.chart" . }}
+{{ include "probe-operator.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "readiness-controller.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "readiness-controller.name" . }}
+{{- define "probe-operator.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "probe-operator.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "readiness-controller.serviceAccountName" -}}
+{{- define "probe-operator.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "readiness-controller.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "probe-operator.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

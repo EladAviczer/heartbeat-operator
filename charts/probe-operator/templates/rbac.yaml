@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "readiness-controller.fullname" . }}
+  name: {{ include "probe-operator.fullname" . }}
 rules:
   - apiGroups: [""]
     resources: ["pods"]
@@ -23,13 +23,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "readiness-controller.fullname" . }}
+  name: {{ include "probe-operator.fullname" . }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "readiness-controller.serviceAccountName" . }}
+    name: {{ include "probe-operator.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: {{ include "readiness-controller.fullname" . }}
+  name: {{ include "probe-operator.fullname" . }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}

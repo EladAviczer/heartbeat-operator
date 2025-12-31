@@ -1,4 +1,4 @@
-module readiness-controller
+module probe-operator
 
 go 1.24.2
 
