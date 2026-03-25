@@ -11,22 +11,22 @@ import (
 	"heartbeat-operator/internal/prober"
 	"heartbeat-operator/internal/ui"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/record"
 )
 
-type ReadinessController struct {
+type ProbeController struct {
 	client    *kubernetes.Clientset
 	crdClient *CrdClient
-	rule      config.GateRule
+	rule      config.ProbeRule
 	probe     prober.Prober
 	recorder  record.EventRecorder
 }
 
-// New creates a new ReadinessController
-func New(client *kubernetes.Clientset, crdClient *CrdClient, rule config.GateRule, p prober.Prober, recorder record.EventRecorder) *ReadinessController {
-	return &ReadinessController{
+func New(client *kubernetes.Clientset, crdClient *CrdClient, rule config.ProbeRule, p prober.Prober, recorder record.EventRecorder) *ProbeController {
+	return &ProbeController{
 		client:    client,
 		crdClient: crdClient,
 		rule:      rule,
@@ -35,14 +35,11 @@ func New(client *kubernetes.Clientset, crdClient *CrdClient, rule config.GateRul
 	}
 }
 
-func (c *ReadinessController) Start(ctx context.Context) {
-	log.Printf("[%s] Started watching %s (Targeting CRD)", c.rule.Name, c.rule.TargetLabel)
+func (c *ProbeController) Start(ctx context.Context) {
+	log.Printf("[%s] Started probing %s", c.rule.Name, c.rule.CheckTarget)
 
-	// Ensure CR exists
-	err := c.ensureCR(ctx)
-	if err != nil {
-		log.Printf("[%s] Failed to ensure CRD: %v", c.rule.Name, err)
-		// Don't exit, maybe CRD isn't installed yet, retry in loop
+	if err := c.ensureCR(ctx); err != nil {
+		log.Printf("[%s] Failed to ensure CRD (will retry): %v", c.rule.Name, err)
 	}
 
 	interval := config.ParseInterval(c.rule.Interval)
@@ -62,11 +59,9 @@ func (c *ReadinessController) Start(ctx context.Context) {
 	}
 }
 
-func (c *ReadinessController) ensureCR(ctx context.Context) error {
-	// Check if already exists
-	_, err := c.crdClient.Get(ctx, c.rule.Name)
-	if err == nil {
-		return nil // Exists
+func (c *ProbeController) ensureCR(ctx context.Context) error {
+	if _, err := c.crdClient.Get(ctx, c.rule.Name); err == nil {
+		return nil
 	}
 
 	// Create if not exists
@@ -82,11 +77,11 @@ func (c *ReadinessController) ensureCR(ctx context.Context) error {
 		},
 	}
 	log.Printf("[%s] Creating Probe CR...", c.rule.Name)
-	_, err = c.crdClient.Create(ctx, dc)
+	_, err := c.crdClient.Create(ctx, dc)
 	return err
 }
 
-func (c *ReadinessController) reconcile(ctx context.Context) {
+func (c *ProbeController) reconcile(ctx context.Context) {
 	start := time.Now()
 	isHealthy := c.probe.Check()
 	duration := time.Since(start).Seconds()
@@ -102,15 +97,12 @@ func (c *ReadinessController) reconcile(ctx context.Context) {
 
 	ui.UpdateState(c.rule.Name, c.rule.CheckTarget, c.rule.CheckType, isHealthy)
 
-	// Fetch current CR to update status
 	cr, err := c.crdClient.Get(ctx, c.rule.Name)
 	if err != nil {
-		// Try to re-create if missing?
 		if err := c.ensureCR(ctx); err != nil {
 			log.Printf("[%s] CR missing and failed to create: %v", c.rule.Name, err)
 			return
 		}
-		// Fetch again
 		cr, err = c.crdClient.Get(ctx, c.rule.Name)
 		if err != nil {
 			log.Printf("[%s] Failed to get CR: %v", c.rule.Name, err)
@@ -128,6 +120,15 @@ func (c *ReadinessController) reconcile(ctx context.Context) {
 	}
 
 	if cr.Status.Healthy != isHealthy || cr.Status.Message != msg {
+		// Emit Event
+		eventType := corev1.EventTypeNormal
+		reason := "ProbeHealthy"
+		if !isHealthy {
+			eventType = corev1.EventTypeWarning
+			reason = "ProbeFailing"
+		}
+		c.recorder.Eventf(cr, eventType, reason, "Check target %s status changed to healthy=%v", c.rule.CheckTarget, isHealthy)
+
 		cr.Status.Healthy = isHealthy
 		cr.Status.Message = msg
 		cr.Status.LastProbeTime = &now
@@ -137,14 +138,10 @@ func (c *ReadinessController) reconcile(ctx context.Context) {
 		} else {
 			log.Printf("[%s] Updated CR status: healthy=%v", c.rule.Name, isHealthy)
 		}
-	} else {
-		// Just update timestamp periodically? Or leave it to reduce API load?
-		// Let's update timestamp if it's been > 1 minute or if we want liveliness
-		if cr.Status.LastProbeTime == nil || time.Since(cr.Status.LastProbeTime.Time) > time.Minute {
-			cr.Status.LastProbeTime = &now
-			if _, err := c.crdClient.UpdateStatus(ctx, cr); err != nil {
-				log.Printf("[%s] Failed to update CR timestamp: %v", c.rule.Name, err)
-			}
+	} else if cr.Status.LastProbeTime == nil || time.Since(cr.Status.LastProbeTime.Time) > time.Minute {
+		cr.Status.LastProbeTime = &now
+		if _, err := c.crdClient.UpdateStatus(ctx, cr); err != nil {
+			log.Printf("[%s] Failed to update CR timestamp: %v", c.rule.Name, err)
 		}
 	}
 }

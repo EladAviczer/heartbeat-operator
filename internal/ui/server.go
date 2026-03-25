@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type GateStatus struct {
+type ProbeStatus struct {
 	Name      string
 	Target    string
 	IsHealthy bool
@@ -19,7 +19,7 @@ type GateStatus struct {
 }
 
 var (
-	stateStore = make(map[string]GateStatus)
+	stateStore = make(map[string]ProbeStatus)
 	mu         sync.RWMutex
 )
 
@@ -27,12 +27,12 @@ func UpdateState(ruleName, target, checkType string, healthy bool) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	msg := "Gate Closed"
+	msg := "Probe Failed"
 	if healthy {
-		msg = "Gate Open"
+		msg = "Probe Passed"
 	}
 
-	stateStore[ruleName] = GateStatus{
+	stateStore[ruleName] = ProbeStatus{
 		Name:      ruleName,
 		Target:    target,
 		CheckType: checkType,
@@ -46,7 +46,7 @@ const htmlTmpl = `
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Readiness Controller</title>
+    <title>Heartbeat Operator</title>
     <meta http-equiv="refresh" content="5">
     <style>
         body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
@@ -62,7 +62,7 @@ const htmlTmpl = `
     </style>
 </head>
 <body>
-    <h1>Active Gates</h1>
+    <h1>Active Probes</h1>
     <div class="grid">
         {{range .}}
         <div class="card">
@@ -90,7 +90,7 @@ var tmpl = template.Must(template.New("webpage").Parse(htmlTmpl))
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	mu.RLock()
-	var list []GateStatus
+	var list []ProbeStatus
 	for _, v := range stateStore {
 		list = append(list, v)
 	}

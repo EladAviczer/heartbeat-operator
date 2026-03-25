@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestHttpProber_Check(t *testing.T) {
@@ -36,7 +37,7 @@ func TestHttpProber_Check(t *testing.T) {
 			}))
 			defer server.Close()
 
-			prober := NewHttpProber(server.URL)
+			prober := NewHttpProber(server.URL, 2*time.Second)
 			result := prober.Check()
 
 			if result != tt.expectedResult {

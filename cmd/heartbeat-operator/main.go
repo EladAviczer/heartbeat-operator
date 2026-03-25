@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"heartbeat-operator/internal/config"
 	"heartbeat-operator/internal/controller"
@@ -27,14 +28,14 @@ import (
 func main() {
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
-		configPath = "/etc/config/gates.json"
+		configPath = "/etc/config/probes.json"
 	}
 
 	rules, err := config.LoadRules(configPath)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", configPath, err)
 	}
-	log.Printf("Loaded %d gate rules", len(rules))
+	log.Printf("Loaded %d probe rules", len(rules))
 
 	k8sConfig, err := rest.InClusterConfig()
 	if err != nil {
@@ -57,19 +58,16 @@ func main() {
 
 	recorder := eventBroadcaster.NewRecorder(
 		scheme.Scheme,
-		corev1.EventSource{Component: "readiness-controller"},
+		corev1.EventSource{Component: "heartbeat-operator"},
 	)
-	// -------------------------------------------------------
 
 	ui.Start("8080")
 
-	// Start Metrics Server
 	metricsAddr := os.Getenv("METRICS_ADDR")
 	if metricsAddr == "" {
 		metricsAddr = ":9090"
 	}
-	// Basic check to see if we should enable it, or just always enable it if env var is present?
-	// For now, always enable on 9090 unless configured otherwise.
+
 	go func() {
 		mux := http.NewServeMux()
 		mux.Handle("/metrics", promhttp.Handler())
@@ -95,12 +93,17 @@ func main() {
 		go func() {
 			defer wg.Done()
 
+			timeout := config.ParseInterval(r.Timeout)
+			if r.Timeout == "" {
+				timeout = 2 * time.Second
+			}
+
 			var p prober.Prober
 			switch r.CheckType {
 			case "http":
-				p = prober.NewHttpProber(r.CheckTarget)
+				p = prober.NewHttpProber(r.CheckTarget, timeout)
 			case "tcp":
-				p = prober.NewTcpProber(r.CheckTarget)
+				p = prober.NewTcpProber(r.CheckTarget, timeout)
 			case "exec":
 				p = prober.NewExecProber(r.CheckTarget)
 			default:
@@ -108,8 +111,6 @@ func main() {
 				return
 			}
 
-			// -------------------------------------------------------
-			// Initialize CRD Client
 			crdClient, err := controller.NewCrdClient(k8sConfig, r.Namespace)
 			if err != nil {
 				log.Printf("Failed to create CRD client: %v", err)

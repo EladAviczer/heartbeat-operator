@@ -22,6 +22,7 @@ Stop writing custom scripts, sidecars, or cronjobs just to check if "Site A" is 
 
 *   **HTTP/HTTPS**: Check status codes, response times.
 *   **TCP**: Check port connectivity (Databases, Queues).
+*   **Exec**: Run arbitrary shell commands and check exit codes.
 *   **Prometheus**: Native metrics (`probe_success`, `probe_duration_seconds`) on port `9090`.
 *   **Grafana**: Includes a ready-to-use dashboard.
 
@@ -44,18 +45,21 @@ probes:
     checkType: "http"
     checkTarget: "https://google.com"
     interval: "30s"
+    timeout: "2s"
 
   # Check an internal database port
   - name: "check-postgres"
     checkType: "tcp"
     checkTarget: "postgres-service:5432"
     interval: "10s"
+    timeout: "5s"
     
   # Check a service in another namespace
   - name: "check-payment-api"
     checkType: "http"
     checkTarget: "http://payment.finance.svc.cluster.local/health"
     interval: "15s"
+    timeout: "3s"
 ```
 
 ### 3. See Results
@@ -103,3 +107,24 @@ spec:
 **Port Isolation:**
 *   `:8080`: Internal status UI.
 *   `:9090`: Prometheus metrics.
+
+## Local Development
+
+To build and run the operator locally for testing:
+
+1. **Build the binary:**
+   ```bash
+   go build -o heartbeat-operator ./cmd/heartbeat-operator
+   ```
+
+2. **Create a Local Config:**
+   Create a `gates.json` file locally with your probe rules. Set the `CONFIG_PATH` environment variable so the operator uses it instead of the default `/etc/config/gates.json`:
+   ```bash
+   export CONFIG_PATH=./gates.json
+   ```
+
+3. **Run It:**
+   Ensure you have a valid Kubernetes context configured (e.g., `~/.kube/config`). Because the app connects to the K8s API to update CRDs and emit Events, it requires an active cluster even when running locally.
+   ```bash
+   ./heartbeat-operator
+   ```

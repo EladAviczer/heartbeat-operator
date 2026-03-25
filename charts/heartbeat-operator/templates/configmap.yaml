@@ -5,5 +5,5 @@ metadata:
   labels:
     {{- include "heartbeat-operator.labels" . | nindent 4 }}
 data:
-  gates.json: |
+  probes.json: |
     {{- .Values.probes | toJson | nindent 4 }}

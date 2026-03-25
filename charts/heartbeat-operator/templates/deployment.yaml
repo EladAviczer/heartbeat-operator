@@ -40,7 +40,7 @@ spec:
             - name: METRICS_ADDR
               value: ":{{ .Values.metrics.port }}"
             - name: CONFIG_PATH
-              value: "/etc/config/gates.json"
+              value: "/etc/config/probes.json"
           volumeMounts:
             - name: config-volume
               mountPath: /etc/config
