@@ -56,11 +56,14 @@ func NewManager(client *kubernetes.Clientset, crdClient *CrdClient, recorder rec
 		activeProbes: make(map[string]context.CancelFunc),
 	}
 
-	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	_, err := informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    m.onAdd,
 		UpdateFunc: m.onUpdate,
 		DeleteFunc: m.onDelete,
 	})
+	if err != nil {
+		log.Printf("Failed to add event handlers: %v", err)
+	}
 
 	return m
 }
