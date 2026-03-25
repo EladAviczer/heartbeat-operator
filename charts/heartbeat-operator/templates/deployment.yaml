@@ -13,8 +13,6 @@ spec:
       {{- include "heartbeat-operator.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
         {{- include "heartbeat-operator.selectorLabels" . | nindent 8 }}
     spec:
