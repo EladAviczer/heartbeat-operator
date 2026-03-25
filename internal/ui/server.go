@@ -42,6 +42,12 @@ func UpdateState(ruleName, target, checkType string, healthy bool) {
 	}
 }
 
+func RemoveState(ruleName string) {
+	mu.Lock()
+	defer mu.Unlock()
+	delete(stateStore, ruleName)
+}
+
 const htmlTmpl = `
 <!DOCTYPE html>
 <html>

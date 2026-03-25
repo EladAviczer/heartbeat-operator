@@ -117,14 +117,8 @@ To build and run the operator locally for testing:
    go build -o heartbeat-operator ./cmd/heartbeat-operator
    ```
 
-2. **Create a Local Config:**
-   Create a `gates.json` file locally with your probe rules. Set the `CONFIG_PATH` environment variable so the operator uses it instead of the default `/etc/config/gates.json`:
-   ```bash
-   export CONFIG_PATH=./gates.json
-   ```
-
-3. **Run It:**
-   Ensure you have a valid Kubernetes context configured (e.g., `~/.kube/config`). Because the app connects to the K8s API to update CRDs and emit Events, it requires an active cluster even when running locally.
+2. **Run It:**
+   Ensure you have a valid Kubernetes context configured (e.g., `~/.kube/config`). Because the app connects to the K8s API to watch for `Probe` CRDs and emit Events, it requires an active cluster.
    ```bash
    ./heartbeat-operator
    ```

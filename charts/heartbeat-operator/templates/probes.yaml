@@ -1,0 +1,17 @@
+{{- range .Values.probes }}
+---
+apiVersion: probes.ready.io/v1alpha1
+kind: Probe
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace | default $.Release.Namespace }}
+  labels:
+    {{- include "heartbeat-operator.labels" $ | nindent 4 }}
+spec:
+  checkType: {{ .checkType }}
+  checkTarget: {{ .checkTarget }}
+  interval: {{ .interval }}
+  {{- if .timeout }}
+  timeout: {{ .timeout }}
+  {{- end }}
+{{- end }}

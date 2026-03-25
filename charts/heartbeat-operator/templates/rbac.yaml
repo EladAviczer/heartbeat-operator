@@ -4,12 +4,6 @@ kind: ClusterRole
 metadata:
   name: {{ include "heartbeat-operator.fullname" . }}
 rules:
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: [""]
-    resources: ["pods/status"]
-    verbs: ["update", "patch"]
   - apiGroups: ["probes.ready.io"]
     resources: ["probes"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

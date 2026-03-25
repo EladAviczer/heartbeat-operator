@@ -6,13 +6,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
-	"heartbeat-operator/internal/config"
 	"heartbeat-operator/internal/controller"
-	"heartbeat-operator/internal/prober"
 	"heartbeat-operator/internal/ui"
 
 	corev1 "k8s.io/api/core/v1"
@@ -26,17 +23,6 @@ import (
 )
 
 func main() {
-	configPath := os.Getenv("CONFIG_PATH")
-	if configPath == "" {
-		configPath = "/etc/config/probes.json"
-	}
-
-	rules, err := config.LoadRules(configPath)
-	if err != nil {
-		log.Fatalf("Failed to load config from %s: %v", configPath, err)
-	}
-	log.Printf("Loaded %d probe rules", len(rules))
-
 	k8sConfig, err := rest.InClusterConfig()
 	if err != nil {
 		log.Fatalf("Failed to get k8s config: %v", err)
@@ -83,49 +69,19 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	var wg sync.WaitGroup
 
-	for _, rule := range rules {
-		wg.Add(1)
-
-		r := rule
-
-		go func() {
-			defer wg.Done()
-
-			timeout := config.ParseInterval(r.Timeout)
-			if r.Timeout == "" {
-				timeout = 2 * time.Second
-			}
-
-			var p prober.Prober
-			switch r.CheckType {
-			case "http":
-				p = prober.NewHttpProber(r.CheckTarget, timeout)
-			case "tcp":
-				p = prober.NewTcpProber(r.CheckTarget, timeout)
-			case "exec":
-				p = prober.NewExecProber(r.CheckTarget)
-			default:
-				log.Printf("[%s] Unknown CheckType '%s', skipping rule", r.Name, r.CheckType)
-				return
-			}
-
-			crdClient, err := controller.NewCrdClient(k8sConfig, r.Namespace)
-			if err != nil {
-				log.Printf("Failed to create CRD client: %v", err)
-				return
-			}
-
-			ctrl := controller.New(clientset, crdClient, r, p, recorder)
-			ctrl.Start(ctx)
-		}()
+	crdClient, err := controller.NewCrdClient(k8sConfig, "") // Empty string watches all namespaces!
+	if err != nil {
+		log.Fatalf("Failed to create CRD client: %v", err)
 	}
+
+	manager := controller.NewManager(clientset, crdClient, recorder)
+	go manager.Start(ctx)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 	log.Println("Shutting down...")
 	cancel()
-	wg.Wait()
+	time.Sleep(1 * time.Second)
 }
