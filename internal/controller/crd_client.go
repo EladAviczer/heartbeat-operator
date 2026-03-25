@@ -5,6 +5,9 @@ import (
 
 	"heartbeat-operator/api/v1alpha1"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
+
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 )
@@ -69,4 +72,24 @@ func (c *CrdClient) UpdateStatus(ctx context.Context, check *v1alpha1.Probe) (*v
 		Do(ctx).
 		Into(result)
 	return result, err
+}
+
+func (c *CrdClient) List(ctx context.Context, opts metav1.ListOptions) (*v1alpha1.ProbeList, error) {
+	result := &v1alpha1.ProbeList{}
+	err := c.restClient.Get().
+		Namespace(c.ns).
+		Resource("probes").
+		VersionedParams(&opts, scheme.ParameterCodec).
+		Do(ctx).
+		Into(result)
+	return result, err
+}
+
+func (c *CrdClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
+	opts.Watch = true
+	return c.restClient.Get().
+		Namespace(c.ns).
+		Resource("probes").
+		VersionedParams(&opts, scheme.ParameterCodec).
+		Watch(ctx)
 }

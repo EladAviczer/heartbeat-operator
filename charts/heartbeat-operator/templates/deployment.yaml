@@ -13,8 +13,6 @@ spec:
       {{- include "heartbeat-operator.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
         {{- include "heartbeat-operator.selectorLabels" . | nindent 8 }}
     spec:
@@ -39,14 +37,5 @@ spec:
           env:
             - name: METRICS_ADDR
               value: ":{{ .Values.metrics.port }}"
-            - name: CONFIG_PATH
-              value: "/etc/config/probes.json"
-          volumeMounts:
-            - name: config-volume
-              mountPath: /etc/config
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      volumes:
-        - name: config-volume
-          configMap:
-            name: {{ include "heartbeat-operator.fullname" . }}-config
