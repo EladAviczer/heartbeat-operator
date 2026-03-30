@@ -138,6 +138,12 @@ func (m *ProbeManager) startProbe(cr *v1alpha1.Probe) {
 		p = prober.NewTcpProber(cr.Spec.CheckTarget, timeout)
 	case "exec":
 		p = prober.NewExecProber(cr.Spec.CheckTarget)
+	case "dns":
+		p = prober.NewDnsProber(cr.Spec.CheckTarget, timeout)
+	case "tls":
+		p = prober.NewTlsProber(cr.Spec.CheckTarget, timeout)
+	case "grpc":
+		p = prober.NewGrpcProber(cr.Spec.CheckTarget, timeout)
 	default:
 		log.Printf("[%s] Unknown check type %s", key, cr.Spec.CheckType)
 		return

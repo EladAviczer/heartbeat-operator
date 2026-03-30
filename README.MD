@@ -23,6 +23,9 @@ Stop writing custom scripts, sidecars, or cronjobs just to check if "Site A" is 
 *   **HTTP/HTTPS**: Check status codes, response times.
 *   **TCP**: Check port connectivity (Databases, Queues).
 *   **Exec**: Run arbitrary shell commands and check exit codes.
+*   **gRPC**: Check native gRPC health endpoints (`grpc_health_v1`).
+*   **DNS**: Verify hostname resolution.
+*   **TLS**: Perform TLS handshakes and check certificate expiration (fails < 7 days).
 *   **Prometheus**: Native metrics (`probe_success`, `probe_duration_seconds`) on port `9090`.
 *   **Grafana**: Includes a ready-to-use dashboard.
 
@@ -87,7 +90,7 @@ metadata:
   name: example-probe
   namespace: default
 spec:
-  # Type: "http", "tcp", or "exec"
+  # Type: "http", "tcp", "exec", "grpc", "dns", or "tls"
   checkType: http
   # Target URL or Host:Port
   checkTarget: https://example.com
