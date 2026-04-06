@@ -1,11 +1,12 @@
 # Build Stage
-FROM golang:1.24-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-# Build the binary inside cmd/heartbeat-operator
-RUN go build -o heartbeat-operator cmd/heartbeat-operator/main.go
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o heartbeat-operator cmd/heartbeat-operator/main.go
 
 # Run Stage
 FROM alpine:latest
