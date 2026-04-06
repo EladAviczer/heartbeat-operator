@@ -1,19 +1,15 @@
 replicaCount: 1
-
 image:
   repository: eladavi/heartbeat-operator
   pullPolicy: Always
-  tag: "sha-d7f36c4"
-
+  tag: "sha-eae2456"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-
 serviceAccount:
   create: true
   annotations: {}
   name: ""
-
 # --- PROBE CONFIGURATION ---
 probes:
   - name: "google-check"
@@ -51,14 +47,12 @@ probes:
     checkType: "tcp"
     checkTarget: "127.0.0.1:9999" # Connection refused
     interval: "5s"
-
-  # Example TCP check
-  # - name: "redis-check"
-  #   namespace: "default"
-  #   checkType: "tcp"
-  #   checkTarget: "redis-master:6379"
-  #   interval: "5s"
-
+    # Example TCP check
+    # - name: "redis-check"
+    #   namespace: "default"
+    #   checkType: "tcp"
+    #   checkTarget: "redis-master:6379"
+    #   interval: "5s"
 resources:
   limits:
     cpu: 100m
@@ -66,12 +60,10 @@ resources:
   requests:
     cpu: 50m
     memory: 64Mi
-
 service:
   type: ClusterIP
   port: 80
   targetPort: 8080
-
 metrics:
   enabled: true
   port: 9090
