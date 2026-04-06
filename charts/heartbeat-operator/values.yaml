@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: eladavi/heartbeat-operator
   pullPolicy: Always
-  tag: "sha-eae2456"
+  tag: "sha-1263a34"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
