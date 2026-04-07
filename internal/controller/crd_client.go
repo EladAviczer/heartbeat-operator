@@ -63,8 +63,12 @@ func (c *CrdClient) Get(ctx context.Context, name string) (*v1alpha1.Probe, erro
 
 func (c *CrdClient) UpdateStatus(ctx context.Context, check *v1alpha1.Probe) (*v1alpha1.Probe, error) {
 	result := &v1alpha1.Probe{}
+	ns := check.Namespace
+	if ns == "" {
+		ns = c.ns
+	}
 	err := c.restClient.Put().
-		Namespace(c.ns).
+		Namespace(ns).
 		Resource("probes").
 		Name(check.Name).
 		SubResource("status").

@@ -27,6 +27,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to get k8s config: %v", err)
 	}
+
+	// Maximize Kubernetes Client limits to handle high-throughput probe updates
+	// The default is QPS=5 and Burst=10. We raise this significantly for scale.
+	k8sConfig.QPS = 100.0
+	k8sConfig.Burst = 250
+
 	clientset, err := kubernetes.NewForConfig(k8sConfig)
 	if err != nil {
 		log.Fatalf("Failed to create k8s client: %v", err)
