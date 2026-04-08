@@ -46,6 +46,8 @@ jobs:
       - name: Lint Chart
         run: helm lint charts/heartbeat-operator
 
+
+
   docker-publish:
     name: Docker Build & Push
     runs-on: ubuntu-latest

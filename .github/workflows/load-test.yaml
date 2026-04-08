@@ -1,0 +1,37 @@
+name: Load Test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [labeled, opened, synchronize, reopened]
+
+jobs:
+  load-test:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'needs-load-test') }}
+    name: K6 Load Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Kind Cluster
+        uses: helm/kind-action@v1.9.0
+
+      - name: Build Docker Image
+        run: docker build -t eladavi/heartbeat-operator:load-test .
+
+      - name: Load Image into Kind
+        run: kind load docker-image eladavi/heartbeat-operator:load-test --name chart-testing
+
+      - name: Install Operator via Helm
+        run: |
+          helm install heartbeat-operator ./charts/heartbeat-operator \
+            --namespace default \
+            --set image.repository=eladavi/heartbeat-operator \
+            --set image.tag=load-test
+          kubectl wait --for=condition=Available deployment/heartbeat-operator --timeout=60s --namespace default || true
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run Load Test
+        run: make load-test

@@ -1,0 +1,7 @@
+{
+  "name": "heartbeat-operator-load-tests",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@types/k6": "^0.45.0"
+  }
+}
