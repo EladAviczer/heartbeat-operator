@@ -28,6 +28,8 @@ jobs:
             --namespace default \
             --set image.repository=eladavi/heartbeat-operator \
             --set image.tag=load-test
+            --set metrics.enabled=false
+            -- set metrics.serviceMonitor.enabled=false
           kubectl wait --for=condition=Available deployment/heartbeat-operator --timeout=60s --namespace default || true
 
       - name: Setup k6
