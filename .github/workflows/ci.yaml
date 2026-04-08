@@ -46,6 +46,37 @@ jobs:
       - name: Lint Chart
         run: helm lint charts/heartbeat-operator
 
+  load-test:
+    name: K6 Load Test
+    runs-on: ubuntu-latest
+    needs: [go-quality]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Kind Cluster
+        uses: helm/kind-action@v1.9.0
+
+      - name: Build Docker Image
+        run: docker build -t eladavi/heartbeat-operator:load-test .
+
+      - name: Load Image into Kind
+        run: kind load docker-image eladavi/heartbeat-operator:load-test --name chart-testing
+
+      - name: Install Operator via Helm
+        # Wait for the operator to become ready to handle our load test
+        run: |
+          helm install heartbeat-operator ./charts/heartbeat-operator \
+            --namespace default \
+            --set image.repository=eladavi/heartbeat-operator \
+            --set image.tag=load-test
+          kubectl wait --for=condition=Available deployment/heartbeat-operator --timeout=60s --namespace default || true
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run Load Test
+        run: make load-test
+
   docker-publish:
     name: Docker Build & Push
     runs-on: ubuntu-latest

@@ -5,6 +5,9 @@
 # Helm Charts (Not needed inside the container image)
 charts/
 
+# Test Suites
+load-testing/
+
 # Build Artifacts & Local Binaries
 bin/
 *.exe
