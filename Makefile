@@ -16,7 +16,7 @@ test:
 
 .PHONY: lint
 lint:
-	go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.56.2 run
+	go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
 
 .PHONY: docker-build
 docker-build:
