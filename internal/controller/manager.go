@@ -170,7 +170,7 @@ func (m *ProbeManager) stopProbe(cr *v1alpha1.Probe) {
 		cancel()
 		delete(m.activeProbes, key)
 	}
-	
+
 	ui.RemoveState(cr.Name)
 }
 

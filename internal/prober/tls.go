@@ -18,7 +18,7 @@ func NewTlsProber(hostPort string, timeout time.Duration) *TlsProber {
 
 func (p *TlsProber) Check() bool {
 	dialer := &net.Dialer{Timeout: p.Timeout}
-	
+
 	conn, err := tls.DialWithDialer(dialer, "tcp", p.HostPort, &tls.Config{
 		InsecureSkipVerify: false,
 	})

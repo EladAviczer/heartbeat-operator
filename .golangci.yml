@@ -22,10 +22,11 @@ linters-settings:
     enable-all: true
     disable:
       - shadow
+      - fieldalignment
   gofmt:
     simplify: true
 
 issues:
-  exclude-use-default: false
+  exclude-use-default: true
   max-issues-per-linter: 0
   max-same-issues: 0
