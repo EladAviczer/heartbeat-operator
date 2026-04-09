@@ -1,3 +1,31 @@
+# Standard Go Targets
+.PHONY: all
+all: build
+
+.PHONY: build
+build:
+	go build -o bin/heartbeat-operator ./cmd/heartbeat-operator
+
+.PHONY: run
+run: build
+	./bin/heartbeat-operator
+
+.PHONY: test
+test:
+	go test -v -race ./...
+
+.PHONY: lint
+lint:
+	go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.56.2 run
+
+.PHONY: docker-build
+docker-build:
+	docker build -t eladavi/heartbeat-operator:latest .
+
+.PHONY: verify
+verify: test lint
+
+# Load Testing Targets
 .PHONY: load-test
 load-test:
 	@echo "Fetching Kubernetes context for load test..."

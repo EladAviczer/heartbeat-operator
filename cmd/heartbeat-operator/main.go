@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -17,7 +18,9 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/homedir"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -25,7 +28,18 @@ import (
 func main() {
 	k8sConfig, err := rest.InClusterConfig()
 	if err != nil {
-		log.Fatalf("Failed to get k8s config: %v", err)
+		log.Printf("InClusterConfig failed, falling back to kubeconfig: %v", err)
+		var kubeconfig string
+		if home := homedir.HomeDir(); home != "" {
+			kubeconfig = filepath.Join(home, ".kube", "config")
+		}
+		if envKubeConfig := os.Getenv("KUBECONFIG"); envKubeConfig != "" {
+			kubeconfig = envKubeConfig
+		}
+		k8sConfig, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+		if err != nil {
+			log.Fatalf("Failed to generate k8s config: %v", err)
+		}
 	}
 
 	k8sConfig.QPS = 100.0

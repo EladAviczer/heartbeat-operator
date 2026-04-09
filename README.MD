@@ -1,7 +1,7 @@
 # Heartbeat Operator
 
 ![Version](https://img.shields.io/badge/version-0.1.0-blue.svg) ![Kubernetes](https://img.shields.io/badge/kubernetes-1.19+-green.svg)
-[![CI](https://github.com/EladAviczer/readiness-controller/actions/workflows/ci.yaml/badge.svg)](https://github.com/EladAviczer/readiness-controller/actions/workflows/ci.yaml)
+[![CI](https://github.com/EladAviczer/heartbeat-operator/actions/workflows/ci.yaml/badge.svg)](https://github.com/EladAviczer/heartbeat-operator/actions/workflows/ci.yaml)
 [![k6 Load Test](https://img.shields.io/github/actions/workflow/status/EladAviczer/heartbeat-operator/load-test.yaml?label=k6%20load%20test&logo=k6&logoColor=white&color=ff5500)](https://github.com/EladAviczer/heartbeat-operator/actions/workflows/load-test.yaml)
 
 > **Effortless Probing for Kubernetes.**
@@ -34,7 +34,7 @@ Stop writing custom scripts, sidecars, or cronjobs just to check if "Site A" is 
 
 ### 1. Install
 ```bash
-helm upgrade --install probe-operator ./charts/probe-operator \
+helm upgrade --install heartbeat-operator ./charts/heartbeat-operator \
   --namespace default \
   --set metrics.enabled=true
 ```

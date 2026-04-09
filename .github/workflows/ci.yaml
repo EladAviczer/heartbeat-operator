@@ -46,12 +46,66 @@ jobs:
       - name: Lint Chart
         run: helm lint charts/heartbeat-operator
 
+  e2e-test:
+    name: E2E Test (kind)
+    runs-on: ubuntu-latest
+    needs: [go-quality, helm-lint]
+    steps:
+      - uses: actions/checkout@v4
 
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: kind
+
+      - name: Load image to kind
+        run: |
+          docker build -t eladavi/heartbeat-operator:test .
+          kind load docker-image eladavi/heartbeat-operator:test --name kind
+
+      - name: Install Heartbeat Operator
+        run: |
+          helm upgrade --install heartbeat-operator ./charts/heartbeat-operator \
+            --namespace default \
+            --set image.repository=eladavi/heartbeat-operator \
+            --set image.tag=test \
+            --set image.pullPolicy=Never \
+            --wait
+
+      - name: Verify Operator Pods
+        run: |
+          kubectl get pods -n default
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=heartbeat-operator -n default --timeout=60s
+
+      - name: Apply Test Probe
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: probes.ready.io/v1alpha1
+          kind: Probe
+          metadata:
+            name: e2e-test-probe
+            namespace: default
+          spec:
+            checkType: http
+            checkTarget: https://google.com
+            interval: 5s
+            timeout: 2s
+          EOF
+
+      - name: Verify Probe Status
+        run: |
+          sleep 15
+          kubectl get probes e2e-test-probe -o yaml
+          HEALTHY=$(kubectl get probes e2e-test-probe -o jsonpath='{.status.healthy}')
+          if [ "$HEALTHY" != "true" ]; then
+            echo "Probe is not healthy!"
+            exit 1
+          fi
 
   docker-publish:
     name: Docker Build & Push
     runs-on: ubuntu-latest
-    needs: [go-quality]
+    needs: [e2e-test]
     permissions:
       contents: write 
       packages: write
